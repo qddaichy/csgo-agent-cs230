@@ -15,3 +15,5 @@ data_engineering: Contains scripts and data examples to investigate YOLO layers
 yolov5: I modified yolov5 open source code for this project purpose. Specifically,
 	I modified the plots.py and yolo.py to output intermediate Conv layer images
 	for movement network traning.
+	
+The origional yolov5 open source project is here: https://github.com/ultralytics/yolov5
