@@ -17,8 +17,8 @@ import seaborn as sn
 import torch
 from PIL import Image, ImageDraw, ImageFont
 
-from utils.general import user_config_dir, is_ascii, is_chinese, xywh2xyxy, xyxy2xywh
-from utils.metrics import fitness
+from yolov5.utils.general import user_config_dir, is_ascii, is_chinese, xywh2xyxy, xyxy2xywh
+from yolov5.utils.metrics import fitness
 
 # Settings
 CONFIG_DIR = user_config_dir()  # Ultralytics settings dir
@@ -26,6 +26,8 @@ RANK = int(os.getenv('RANK', -1))
 matplotlib.rc('font', **{'size': 11})
 matplotlib.use('Agg')  # for writing to files only
 
+image_feature_s1 = 0
+image_feature_s5 = 0
 
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
@@ -420,7 +422,7 @@ def plot_results(file='path/to/results.csv', dir=''):
     plt.close()
 
 
-def feature_visualization(x, module_type, stage, n=256, name_prefix="", save_dir=Path('C:/Users/Chenyang/Desktop/')):
+def feature_visualization(x, module_type, stage, n=32, save_dir=Path('C:/Users/Chenyang/Desktop/t1/')):
     """
     x:              Features to be visualized
     module_type:    Module type
@@ -428,22 +430,38 @@ def feature_visualization(x, module_type, stage, n=256, name_prefix="", save_dir
     n:              Maximum number of feature maps to plot
     save_dir:       Directory to save results
     """
-    if 'Detect' not in module_type:
-        batch, channels, height, width = x.shape  # batch, channels, height, width
-        print('batch', batch, 'channels', channels, 'height', height, 'width', width)
-        print('after squeeze', blocks[0].squeeze())
-        if height > 1 and width > 1:
-            f = f"{name_prefix}_stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
+    batch, channels, height, width = x.shape
+    blocks = torch.chunk(x[0], channels, dim=0)
+    global image_feature_s1
+    global image_feature_s5
+    #After experimenting, features in channel 14 works.
+    #image_feature = blocks[14].squeeze()
+    if stage == 1:
+        image_feature_s1 = blocks[14].squeeze()
+    if stage == 5:
+        image_feature_s5 = blocks[12].squeeze()
 
-            blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
-            n = min(n, channels)  # number of plots
-            fig, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
-            ax = ax.ravel()
-            plt.subplots_adjust(wspace=0.05, hspace=0.05)
-            for i in range(n):
-                ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
-                ax[i].axis('off')
+    # if 'Detect' not in module_type:
+    #     batch, channels, height, width = x.shape  # batch, channels, height, width
+    #     if height > 1 and width > 1:
+    #         f = f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
 
-            print(f'Saving {save_dir / f}... ({n}/{channels})')
-            plt.savefig(save_dir / f, dpi=300, bbox_inches='tight')
-            plt.close()
+    #         blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
+    #         ts = torch.clone(blocks[14].squeeze())
+    #         global image_feature
+    #         image_feature = blocks[14].squeeze().detach().numpy()
+
+    #         plt.imshow(ts.detach())
+    #         plt.imsave(save_dir / f, ts.detach())
+    #         n = min(n, channels)  # number of plots
+    #         fig, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
+    #         ax = ax.ravel()
+    #         plt.subplots_adjust(wspace=0.05, hspace=0.05)
+    #         for i in range(n):
+    #             ts = torch.clone(blocks[i].squeeze())
+    #             ax[i].imshow(ts.detach())  # cmap='gray'
+    #             ax[i].axis('off')
+
+    #         print(f'Saving {save_dir / f}... ({n}/{channels})')
+    #         plt.savefig(save_dir / f, dpi=300, bbox_inches='tight')
+    #         plt.close()
