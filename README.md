@@ -17,8 +17,14 @@ yolov5: I modified yolov5 open source code for this project purpose. Specificall
 	for movement network traning.
 
 Open source project used:
+
 yolov5 git repository: https://github.com/ultralytics/yolov5
+
 MSS git repository: https://github.com/BoboTiG/python-mss
+
 Pygame git repository: https://github.com/pygame/pygame
+
 Python keyboard git repository https://github.com/boppreh/keyboard
+
 VGgamepad git repository: https://github.com/PJSoftCo/VGamepad
+
