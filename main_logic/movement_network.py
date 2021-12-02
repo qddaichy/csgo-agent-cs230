@@ -12,11 +12,11 @@ from matplotlib import pyplot as plt
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyper parameters 
-num_epochs = 100
+num_epochs = 1
 # Mini batch size to train before an update
 batch_size = 512
 learning_rate = 0.0005
-learning_rate_decay_rate = 0.995
+learning_rate_decay_rate = 0.99
 # Size of input features per example. Carefully picked as 90x170 pixels per image.
 # Ideally this can be read from training data but hardcode here and cross
 # check with training data.
@@ -35,8 +35,8 @@ num_layers = 5
 # Since mouse/gamepad movement is a regression problem and is using MSE loss,
 # we want to assign a different weight term to it to balance between
 # mouse loss and keyboard loss.
-mouse_loss_weight = 2
-
+mouse_loss_weight1 = 1.5
+mouse_loss_weight2 = 3
 
 # Problem specific parameters
 num_keyboard_actions = 7
@@ -86,7 +86,7 @@ class MovementNetwork(nn.Module):
 
 
 if __name__ == "__main__":
-    previous_model_path = ''
+    previous_model_path = "movement_network_60s_5l_6.pt"
 
     model = MovementNetwork().to(device)
     if previous_model_path != '':
@@ -180,8 +180,9 @@ if __name__ == "__main__":
 
             # Calculate total loss as total = Loss-keyboard + alpha * Loss-mouse
             keyboard_loss = BCE_loss(keyboard_prediction, Y_keyboard)
-            mouse_loss = MSE_loss(mouse_prediction, Y_mouse)
-            total_loss = keyboard_loss + mouse_loss_weight * mouse_loss
+            mouse_loss1 = MSE_loss(mouse_prediction[0], Y_mouse[0])
+            mouse_loss2 = MSE_loss(mouse_prediction[1], Y_mouse[1])
+            total_loss = keyboard_loss + mouse_loss_weight1 * mouse_loss1 + mouse_loss_weight2 * mouse_loss2 
 
             # print("keyboard_loss ", keyboard_loss)
             # print("mouse_loss ", mouse_loss)
@@ -206,7 +207,7 @@ if __name__ == "__main__":
         scheduler.step()
 
     # Save trained model
-    PATH = "movement_network_60s_5l_5.pt"
+    PATH = "movement_network_60s_5l_8.pt"
     torch.save(model.state_dict(), PATH)
 
     # Plot the loss trend

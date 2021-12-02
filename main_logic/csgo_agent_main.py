@@ -20,7 +20,7 @@ from yolov5 import YOLOv5
 
 # Models setting
 yolov5_model_path = "yolov5/bestf.pt"
-movement_model_path = "movement_network_60s_5l_5.pt"
+movement_model_path = "movement_network_60s_5l_6.pt"
 device = "cuda"
 
 # Mouse movement setting
@@ -71,7 +71,7 @@ sleep(2)
 
 # A sliding window that keeps the last X frames.
 frame_window = []
-
+fired_last_frame = datetime.datetime.now()
 while True:
 	# In real play, don't calculate gradient
 	with torch.no_grad():
@@ -161,10 +161,13 @@ while True:
 				final_target_x = second_targets[0][0]
 				final_target_y = second_targets[0][1]
 			# Move the cursor to the target
-			pyautogui.move((final_target_x - mouse_position.x), (final_target_y - mouse_position.y))
+			pyautogui.move((final_target_x - mouse_position.x) * 1.1, (final_target_y - mouse_position.y) * 1.1)
 			# Fire when cursor is within 10 pixel to target
-			if abs(mouse_position.x - final_target_x) + abs(mouse_position.y - final_target_y) < 10:
-				pyautogui.click()
+			if abs(mouse_position.x - final_target_x) + abs(mouse_position.y - final_target_y) < 20:
+				fired_duration = datetime.datetime.now() - fired_last_frame
+				if fired_duration.total_seconds() > 0.25:
+					pyautogui.click()
+					fired_last_frame = datetime.datetime.now()
 
 		# Logic for mouse orientation if no target is detected.
 		# print("mouse", mouse_prediction)
